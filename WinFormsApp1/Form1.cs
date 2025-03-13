@@ -1,4 +1,6 @@
+
 using System.Text;
+using WinFormsApp1.Properties; // Добавляем ссылку на настройки
 
 namespace WinFormsApp1
 {
@@ -7,68 +9,85 @@ namespace WinFormsApp1
         public Form1()
         {
             InitializeComponent();
+            LoadData(); // Восстановление данных при открытии формы
         }
 
+        // Загрузка данных
+        private void LoadData()
+        {
+            textBox1.Text = Settings.Default.SavedText;
+        }
+
+        // Сохранение данных
+        private void SaveData()
+        {
+            Settings.Default.SavedText = textBox1.Text.Trim();
+            Settings.Default.Save();
+        }
+
+        // Сохранение данных при закрытии формы
+        private void Form1_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            SaveData();
+        }
+
+        // Подсчёт одинаковых соседних букв
         private void button1_Click(object sender, EventArgs e)
         {
-            var counter = new LetterCounter(); // Создаем объект класса LetterCounter
-            string input = textBox1.Text; // Получаем текст из текстового поля
+            string input = textBox1.Text.Trim();
 
-            if (string.IsNullOrEmpty(input)) // Проверяем, что строка не пустая
+            if (string.IsNullOrWhiteSpace(input))
             {
-                MessageBox.Show("Введите непустую строку.");
+                MessageBox.Show("Введите непустую строку, содержащую хотя бы одну букву.", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
 
-            var letterCounts = counter.CountAdjacentLetters(input); // Вызываем метод для подсчета букв
+            var letterCounts = CountAdjacentLetters(input);
 
-            if (letterCounts.Count == 0) // Если словарь пуст, значит, повторяющихся букв нет
-            {
-                MessageBox.Show("Нет одинаковых соседних букв.");
-            }
-            else
-            {
-                StringBuilder result = new StringBuilder(); // Используем StringBuilder для создания результата
+            string result = letterCounts.Count == 0
+                ? "Нет одинаковых соседних букв."
+                : BuildResultMessage(letterCounts);
 
-                foreach (var pair in letterCounts) // Перебираем буквы в словаре
-                {
-                    foreach (var length in pair.Value) // Перебираем длины последовательностей для каждой буквы
-                    {
-                        result.AppendLine($"Буква {pair.Key} - {length} раза"); // Добавляем результат в StringBuilder
-                    }
-                }
-
-                // Отображаем результат в MessageBox
-                MessageBox.Show(result.ToString(), "Результат подсчета одинаковых соседних букв");
-            }
+            MessageBox.Show(result, "Результат подсчета", MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
-    }
 
-    public class LetterCounter
-    {
-        // Метод для подсчета одинаковых соседних букв в строке
-        public Dictionary<char, List<int>> CountAdjacentLetters(string input)
+        // Метод для подсчёта одинаковых соседних букв
+        private Dictionary<char, List<int>> CountAdjacentLetters(string input)
         {
-            var letterCounts = new Dictionary<char, List<int>>(); // Создаем словарь для хранения букв и их повторяющихся последовательностей
-            input = input.Replace(" ", "").ToLower(); // Убираем пробелы и приводим строку к нижнему регистру
+            var letterCounts = new Dictionary<char, List<int>>();
+            input = input.Replace(" ", "").ToLower();
 
-            for (int i = 0; i < input.Length - 1; i++) // Цикл по символам строки, кроме последнего
+            for (int i = 0; i < input.Length - 1; i++)
             {
-                if (input[i] == input[i + 1]) // Если текущий символ совпадает со следующим
+                if (input[i] == input[i + 1])
                 {
                     int length = 2; // Начинаем считать последовательность с 2
-                    while (i + length < input.Length && input[i] == input[i + length]) // Пока символы одинаковые
-                        length++; // Увеличиваем длину последовательности
+                    while (i + length < input.Length && input[i] == input[i + length])
+                        length++;
 
-                    if (!letterCounts.ContainsKey(input[i])) // Если буква отсутствует в словаре
-                        letterCounts[input[i]] = new List<int>(); // Добавляем её со списком длин
+                    if (!letterCounts.ContainsKey(input[i]))
+                        letterCounts[input[i]] = new List<int>();
 
-                    letterCounts[input[i]].Add(length); // Добавляем найденную длину последовательности в словарь
-                    i += length - 1; // Пропускаем уже подсчитанные символы
+                    letterCounts[input[i]].Add(length);
+                    i += length - 1;
                 }
             }
 
-            return letterCounts; // Возвращаем словарь с результатами
+            return letterCounts;
+        }
+
+        // Формирование текста для вывода результата
+        private string BuildResultMessage(Dictionary<char, List<int>> letterCounts)
+        {
+            var result = new StringBuilder();
+            foreach (var pair in letterCounts)
+            {
+                foreach (var length in pair.Value)
+                {
+                    result.AppendLine($"Буква {pair.Key} - {length} раза");
+                }
+            }
+            return result.ToString();
         }
     }
 }

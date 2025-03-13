@@ -73,11 +73,12 @@
             // 
             AutoScaleDimensions = new SizeF(8F, 20F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(800, 261);
+            ClientSize = new Size(811, 261);
             Controls.Add(button1);
             Controls.Add(textBox1);
             Controls.Add(label2);
             Controls.Add(label1);
+            FormClosing += Form1_FormClosing;
             Name = "Form1";
             Text = "Form1";
             ResumeLayout(false);
