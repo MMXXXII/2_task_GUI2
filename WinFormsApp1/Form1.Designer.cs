@@ -42,7 +42,6 @@
             label1.Size = new Size(705, 20);
             label1.TabIndex = 0;
             label1.Text = "Дано предложение. Определить, сколько в нем одинаковых соседних букв. Пробелы не учитывать.";
-
             // 
             // label2
             // 
@@ -59,7 +58,6 @@
             textBox1.Name = "textBox1";
             textBox1.Size = new Size(555, 27);
             textBox1.TabIndex = 2;
-
             // 
             // button1
             // 
@@ -75,7 +73,7 @@
             // 
             AutoScaleDimensions = new SizeF(8F, 20F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(800, 450);
+            ClientSize = new Size(800, 261);
             Controls.Add(button1);
             Controls.Add(textBox1);
             Controls.Add(label2);
