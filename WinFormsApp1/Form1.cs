@@ -1,6 +1,4 @@
-
-using System.Text;
-using WinFormsApp1.Properties; // Добавляем ссылку на настройки
+using WinFormsApp1.Properties;
 
 namespace WinFormsApp1
 {
@@ -9,85 +7,57 @@ namespace WinFormsApp1
         public Form1()
         {
             InitializeComponent();
-            LoadData(); // Восстановление данных при открытии формы
+            textBox1.Text = Settings.Default.SavedText; 
         }
 
-        // Загрузка данных
-        private void LoadData()
-        {
-            textBox1.Text = Settings.Default.SavedText;
-        }
-
-        // Сохранение данных
         private void SaveData()
         {
             Settings.Default.SavedText = textBox1.Text.Trim();
-            Settings.Default.Save();
+            File.WriteAllText("data.txt", textBox1.Text.Trim());
         }
 
-        // Сохранение данных при закрытии формы
-        private void Form1_FormClosing(object sender, FormClosingEventArgs e)
-        {
-            SaveData();
-        }
 
-        // Подсчёт одинаковых соседних букв
+        private void Form1_FormClosing(object sender, FormClosingEventArgs e) => SaveData();
+
         private void button1_Click(object sender, EventArgs e)
         {
             string input = textBox1.Text.Trim();
-
             if (string.IsNullOrWhiteSpace(input))
             {
-                MessageBox.Show("Введите непустую строку, содержащую хотя бы одну букву.", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                ShowMessage("Введите непустую строку.", "Ошибка", MessageBoxIcon.Warning);
                 return;
             }
 
-            var letterCounts = CountAdjacentLetters(input);
-
-            string result = letterCounts.Count == 0
-                ? "Нет одинаковых соседних букв."
-                : BuildResultMessage(letterCounts);
-
-            MessageBox.Show(result, "Результат подсчета", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            var result = BuildResultMessage(CountAdjacentLetters(input.Replace(" ", "").ToLower()));
+            ShowMessage(result, "Результат подсчета", MessageBoxIcon.Information);
         }
 
-        // Метод для подсчёта одинаковых соседних букв
         private Dictionary<char, List<int>> CountAdjacentLetters(string input)
         {
             var letterCounts = new Dictionary<char, List<int>>();
-            input = input.Replace(" ", "").ToLower();
-
-            for (int i = 0; i < input.Length - 1; i++)
+            for (int i = 0; i < input.Length;)
             {
-                if (input[i] == input[i + 1])
+                char currentChar = input[i];
+                int length = 1;
+                while (++i < input.Length && input[i] == currentChar) length++;
+
+                if (length > 1)
                 {
-                    int length = 2; // Начинаем считать последовательность с 2
-                    while (i + length < input.Length && input[i] == input[i + length])
-                        length++;
-
-                    if (!letterCounts.ContainsKey(input[i]))
-                        letterCounts[input[i]] = new List<int>();
-
-                    letterCounts[input[i]].Add(length);
-                    i += length - 1;
+                    if (!letterCounts.ContainsKey(currentChar))
+                        letterCounts[currentChar] = new List<int>();
+                    letterCounts[currentChar].Add(length);
                 }
             }
-
             return letterCounts;
         }
 
-        // Формирование текста для вывода результата
-        private string BuildResultMessage(Dictionary<char, List<int>> letterCounts)
-        {
-            var result = new StringBuilder();
-            foreach (var pair in letterCounts)
-            {
-                foreach (var length in pair.Value)
-                {
-                    result.AppendLine($"Буква {pair.Key} - {length} раза");
-                }
-            }
-            return result.ToString();
-        }
+        private string BuildResultMessage(Dictionary<char, List<int>> letterCounts) =>
+            letterCounts.Count == 0
+                ? "Нет одинаковых соседних букв."
+                : string.Join("\n", letterCounts.SelectMany(pair =>
+                    pair.Value.Select(length => $"Буква {pair.Key} - {length} раза")));
+
+        private void ShowMessage(string message, string caption, MessageBoxIcon icon) =>
+            MessageBox.Show(message, caption, MessageBoxButtons.OK, icon);
     }
 }
