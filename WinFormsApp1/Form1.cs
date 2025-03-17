@@ -1,4 +1,9 @@
 using WinFormsApp1.Properties;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Windows.Forms;
 
 namespace WinFormsApp1
 {
@@ -7,18 +12,24 @@ namespace WinFormsApp1
         public Form1()
         {
             InitializeComponent();
-            textBox1.Text = Settings.Default.SavedText; 
+            textBox1.Text = Settings.Default.SavedText;
         }
 
+        // Сохранение данных из текстового поля
         private void SaveData()
         {
-            Settings.Default.SavedText = textBox1.Text.Trim();
-            File.WriteAllText("data.txt", textBox1.Text.Trim());
+            string text = textBox1.Text.Trim();
+            Settings.Default.SavedText = text;
+            File.WriteAllText("data.txt", text);
         }
 
+        // Обработчик события закрытия формы
+        private void Form1_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            SaveData();
+        }
 
-        private void Form1_FormClosing(object sender, FormClosingEventArgs e) => SaveData();
-
+        // Обработчик нажатия на кнопку
         private void button1_Click(object sender, EventArgs e)
         {
             string input = textBox1.Text.Trim();
@@ -28,36 +39,63 @@ namespace WinFormsApp1
                 return;
             }
 
-            var result = BuildResultMessage(CountAdjacentLetters(input.Replace(" ", "").ToLower()));
+            string result = BuildResultMessage(CountAdjacentLetters(input.Replace(" ", "").ToLower()));
             ShowMessage(result, "Результат подсчета", MessageBoxIcon.Information);
         }
 
+        // Подсчёт одинаковых соседних букв
         private Dictionary<char, List<int>> CountAdjacentLetters(string input)
         {
             var letterCounts = new Dictionary<char, List<int>>();
+
             for (int i = 0; i < input.Length;)
             {
                 char currentChar = input[i];
                 int length = 1;
-                while (++i < input.Length && input[i] == currentChar) length++;
+
+                // Подсчёт последовательных одинаковых букв
+                while (++i < input.Length && input[i] == currentChar)
+                {
+                    length++;
+                }
 
                 if (length > 1)
                 {
                     if (!letterCounts.ContainsKey(currentChar))
+                    {
                         letterCounts[currentChar] = new List<int>();
+                    }
                     letterCounts[currentChar].Add(length);
                 }
             }
+
             return letterCounts;
         }
 
-        private string BuildResultMessage(Dictionary<char, List<int>> letterCounts) =>
-            letterCounts.Count == 0
-                ? "Нет одинаковых соседних букв."
-                : string.Join("\n", letterCounts.SelectMany(pair =>
-                    pair.Value.Select(length => $"Буква {pair.Key} - {length} раза")));
+        // Формирование сообщения с результатом
+        private string BuildResultMessage(Dictionary<char, List<int>> letterCounts)
+        {
+            if (letterCounts.Count == 0)
+            {
+                return "Нет одинаковых соседних букв.";
+            }
 
-        private void ShowMessage(string message, string caption, MessageBoxIcon icon) =>
+            var resultLines = new List<string>();
+            foreach (var pair in letterCounts)
+            {
+                foreach (var length in pair.Value)
+                {
+                    resultLines.Add($"Буква {pair.Key} - {length} раза");
+                }
+            }
+
+            return string.Join("\n", resultLines);
+        }
+
+        // Показ всплывающего сообщения
+        private void ShowMessage(string message, string caption, MessageBoxIcon icon)
+        {
             MessageBox.Show(message, caption, MessageBoxButtons.OK, icon);
+        }
     }
 }

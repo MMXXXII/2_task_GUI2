@@ -61,11 +61,11 @@
             // 
             // button1
             // 
-            button1.Location = new Point(232, 102);
+            button1.Location = new Point(332, 87);
             button1.Name = "button1";
-            button1.Size = new Size(367, 29);
+            button1.Size = new Size(180, 29);
             button1.TabIndex = 3;
-            button1.Text = "Подсчитать количество соседних букв";
+            button1.Text = "Подсчитать";
             button1.UseVisualStyleBackColor = true;
             button1.Click += button1_Click;
             // 
@@ -73,14 +73,14 @@
             // 
             AutoScaleDimensions = new SizeF(8F, 20F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(811, 261);
+            ClientSize = new Size(811, 168);
             Controls.Add(button1);
             Controls.Add(textBox1);
             Controls.Add(label2);
             Controls.Add(label1);
-            FormClosing += Form1_FormClosing;
             Name = "Form1";
-            Text = "Form1";
+            Text = "Подсчитывание соседних букв";
+            FormClosing += Form1_FormClosing;
             ResumeLayout(false);
             PerformLayout();
         }
