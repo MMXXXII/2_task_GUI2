@@ -1,10 +1,3 @@
-using WinFormsApp1.Properties;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Windows.Forms;
-
 namespace WinFormsApp1
 {
     public partial class Form1 : Form
@@ -12,90 +5,105 @@ namespace WinFormsApp1
         public Form1()
         {
             InitializeComponent();
-            textBox1.Text = Settings.Default.SavedText;
+            textBox1.Text = Properties.Settings.Default.SavedText;
         }
 
-        // Сохранение данных из текстового поля
-        private void SaveData()
+        // Сохраняем данные
+        private void SaveText()
         {
             string text = textBox1.Text.Trim();
-            Settings.Default.SavedText = text;
+            Properties.Settings.Default.SavedText = text;
             File.WriteAllText("data.txt", text);
         }
 
-        // Обработчик события закрытия формы
+        // Обработчик закрытия формы
         private void Form1_FormClosing(object sender, FormClosingEventArgs e)
         {
-            SaveData();
+            SaveText();
         }
 
-        // Обработчик нажатия на кнопку
+        // Обработчик кнопки
         private void button1_Click(object sender, EventArgs e)
         {
-            string input = textBox1.Text.Trim();
-            if (string.IsNullOrWhiteSpace(input))
+            string inputText = textBox1.Text.Trim();
+
+            if (string.IsNullOrWhiteSpace(inputText))
             {
-                ShowMessage("Введите непустую строку.", "Ошибка", MessageBoxIcon.Warning);
+                ShowErrorMessage("Введите непустую строку.");
                 return;
             }
 
-            string result = BuildResultMessage(CountAdjacentLetters(input.Replace(" ", "").ToLower()));
-            ShowMessage(result, "Результат подсчета", MessageBoxIcon.Information);
+            // Убираем пробелы и приводим к нижнему регистру
+            inputText = inputText.Replace(" ", "").ToLower();
+
+            var letterCounts = CountSameAdjacentLetters(inputText);
+            string result = GetResultMessage(letterCounts);
+            ShowInfoMessage(result);
         }
 
-        // Подсчёт одинаковых соседних букв
-        private Dictionary<char, List<int>> CountAdjacentLetters(string input)
+        // Подсчет одинаковых соседних букв
+        private Dictionary<char, List<int>> CountSameAdjacentLetters(string text)
         {
-            var letterCounts = new Dictionary<char, List<int>>();
+            var counts = new Dictionary<char, List<int>>();
 
-            for (int i = 0; i < input.Length;)
+            for (int i = 0; i < text.Length;)
             {
-                char currentChar = input[i];
-                int length = 1;
+                char currentChar = text[i];
+                int count = 1;
 
-                // Подсчёт последовательных одинаковых букв
-                while (++i < input.Length && input[i] == currentChar)
+                // Считаем одинаковые соседние буквы
+                while (i + 1 < text.Length && text[i + 1] == currentChar)
                 {
-                    length++;
+                    count++;
+                    i++;
                 }
 
-                if (length > 1)
+                if (count > 1)
                 {
-                    if (!letterCounts.ContainsKey(currentChar))
+                    if (!counts.ContainsKey(currentChar))
                     {
-                        letterCounts[currentChar] = new List<int>();
+                        counts[currentChar] = new List<int>();
                     }
-                    letterCounts[currentChar].Add(length);
+                    counts[currentChar].Add(count);
                 }
+
+                i++;
             }
 
-            return letterCounts;
+            return counts;
         }
 
-        // Формирование сообщения с результатом
-        private string BuildResultMessage(Dictionary<char, List<int>> letterCounts)
+        // Формирование результата
+        private string GetResultMessage(Dictionary<char, List<int>> counts)
         {
-            if (letterCounts.Count == 0)
+            if (counts.Count == 0)
             {
                 return "Нет одинаковых соседних букв.";
             }
 
-            var resultLines = new List<string>();
-            foreach (var pair in letterCounts)
+            List<string> resultLines = new List<string>();
+
+            foreach (var entry in counts)
             {
-                foreach (var length in pair.Value)
+                foreach (var length in entry.Value)
                 {
-                    resultLines.Add($"Буква {pair.Key} - {length} раза");
+                    resultLines.Add($"Буква {entry.Key} встречается {length} раз(а)");
                 }
             }
 
             return string.Join("\n", resultLines);
         }
 
-        // Показ всплывающего сообщения
-        private void ShowMessage(string message, string caption, MessageBoxIcon icon)
+        // Показываем информационное сообщение
+        private void ShowInfoMessage(string message)
         {
-            MessageBox.Show(message, caption, MessageBoxButtons.OK, icon);
+            MessageBox.Show(message, "Результат подсчета", MessageBoxButtons.OK, MessageBoxIcon.Information);
+        }
+
+        // Показываем ошибку
+        private void ShowErrorMessage(string message)
+        {
+            MessageBox.Show(message, "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Warning);
         }
     }
 }
